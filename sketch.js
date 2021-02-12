@@ -66,6 +66,35 @@ function createEmptyGrid(cols, rows) {
   return empty;
 }
 
+function mousePressed() {
+  let x = Math.floor(mouseX / cellWidth);
+  let y = Math.floor(mouseY / cellHeight);
+  if (board[y][x] === 1) {
+    board[y][x] = 2;
+  }
+  else if (board[y][x] === 2) {
+    board[y][x] = 1;
+    availableMoves();
+  }
+}
+
+function availableMoves() {
+  let x = Math.floor(mouseX / cellWidth);
+  let y = Math.floor(mouseY / cellHeight);
+  if (board[y-1][x+1] === 0) {
+    grid[y-1][x+1] = 2;
+  }
+  else if (board[y-1][x-1] === 0) {
+    grid[y-1][x-1] = 2;
+  }
+  else if (board[y+1][x+1] === 0) {
+    grid[y+1][x+1] = 2;
+  }
+  else if (board[y+1][x-1] === 0) {
+    grid[y+1][x-1] = 2;
+  }
+}
+
 function displayPieces() {
   for (let y=0; y<boardRows; y++) {
     for (let x=0; x<boardCols; x++) {
@@ -73,8 +102,11 @@ function displayPieces() {
       if (board[y][x] === 1) {
         fill("red");
       }
-      else {
+      else if (board[y][x] === 0){
         noFill();
+      }
+      else {
+        fill("yellow");
       }
       ellipseMode(CORNER);
       ellipse(x*cellWidth,y*cellHeight,cellWidth-1,cellHeight-1);
@@ -89,8 +121,11 @@ function displayGrid() {
       if (grid[y][x] === 0) {
         fill("white");
       }
-      else {
+      else if (grid[y][x] ===1 ) {
         fill("black");
+      }
+      else {
+        fill("yellow");
       }
       rect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
     }
