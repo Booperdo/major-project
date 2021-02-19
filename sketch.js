@@ -7,14 +7,28 @@
 
 const ROWS = 12;
 const COLS = 12;
-let grid, cellWidth, cellHeight, boardRows, boardCols;
+let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition;
 
-let board = 
+let aiBoard = 
 [[0,1,0,1,0,1,0,1,0,1,0,1], 
   [1,0,1,0,1,0,1,0,1,0,1,0],
   [0,1,0,1,0,1,0,1,0,1,0,1],
   [1,0,1,0,1,0,1,0,1,0,1,0],
   [0,1,0,1,0,1,0,1,0,1,0,1],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0]
+];
+let playerBoard = 
+[[0,3,0,3,0,3,0,3,0,3,0,3], 
+  [3,0,3,0,3,0,3,0,3,0,3,0],
+  [0,3,0,3,0,3,0,3,0,3,0,3],
+  [3,0,3,0,3,0,3,0,3,0,3,0],
+  [0,3,0,3,0,3,0,3,0,3,0,3],
   [0,0,0,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0,0,0,0,0],
   [1,0,1,0,1,0,1,0,1,0,1,0],
@@ -31,8 +45,8 @@ function setup() {
   cellWidth = width / COLS;
   cellHeight = height / ROWS;
 
-  boardRows = board.length;
-  boardCols = board[0].length;
+  boardRows = aiBoard.length;
+  boardCols = aiBoard[0].length;
 }
 
 function draw() {
@@ -69,29 +83,46 @@ function createEmptyGrid(cols, rows) {
 function mousePressed() {
   let x = Math.floor(mouseX / cellWidth);
   let y = Math.floor(mouseY / cellHeight);
-  if (board[y][x] === 1) {
-    board[y][x] = 2;
-  }
-  else if (board[y][x] === 2) {
-    board[y][x] = 1;
+  if (playerBoard[y][x] === 1) {
+    playerBoard[y][x] = 2;
+    oldPosition = ([y], [x]);
     availableMoves();
+  }
+  else if (playerBoard[y][x] === 2) {
+    playerBoard[y][x] = 1;
+    grid[y-1][x+1] = 1;
+    grid[y-1][x-1] = 1;
+    // grid[y+1][x+1] = 1;
+    // grid[y+1][x-1] = 1;
   }
 }
 
 function availableMoves() {
   let x = Math.floor(mouseX / cellWidth);
   let y = Math.floor(mouseY / cellHeight);
-  if (board[y-1][x+1] === 0) {
+  if (playerBoard[y-1][x+1] === 0) {
     grid[y-1][x+1] = 2;
   }
-  else if (board[y-1][x-1] === 0) {
+  if (playerBoard[y-1][x-1] === 0) {
     grid[y-1][x-1] = 2;
   }
-  else if (board[y+1][x+1] === 0) {
-    grid[y+1][x+1] = 2;
-  }
-  else if (board[y+1][x-1] === 0) {
-    grid[y+1][x-1] = 2;
+  // if (playerBoard[y+1][x+1] === 0) {
+  //   grid[y+1][x+1] = 2;
+  // }
+  // if (playerBoard[y+1][x-1] === 0) {
+  //   grid[y+1][x-1] = 2;
+  // }
+}
+
+function mouseClicked() {
+  let x = Math.floor(mouseX / cellWidth);
+  let y = Math.floor(mouseY / cellHeight);
+  if (grid[y][x] === 2) {
+    playerBoard[y][x] = 1;
+    grid[oldPosition[0]-1][oldPosition[1]+1] = 1;
+    grid[y-1][x-1] = 1;
+    // grid[y+1][x+1] = 1;
+    // grid[y+1][x-1] = 1;
   }
 }
 
@@ -99,13 +130,29 @@ function displayPieces() {
   for (let y=0; y<boardRows; y++) {
     for (let x=0; x<boardCols; x++) {
       noStroke();
-      if (board[y][x] === 1) {
-        fill("red");
+      if (aiBoard[y][x] === 1) {
+        fill("orange");
       }
-      else if (board[y][x] === 0){
+      else if (aiBoard[y][x] === 0){
         noFill();
       }
       else {
+        fill("yellow");
+      }
+      ellipseMode(CORNER);
+      ellipse(x*cellWidth,y*cellHeight,cellWidth-1,cellHeight-1);
+    }
+  }
+  for (let y=0; y<boardRows; y++) {
+    for (let x=0; x<boardCols; x++) {
+      noStroke();
+      if (playerBoard[y][x] === 1) {
+        fill("red");
+      }
+      else if (playerBoard[y][x] === 0){
+        noFill();
+      }
+      else if (playerBoard[y][x] === 2) {
         fill("yellow");
       }
       ellipseMode(CORNER);
