@@ -8,6 +8,7 @@
 const ROWS = 12;
 const COLS = 12;
 let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition;
+let turn = "player";
 
 let aiBoard = 
 [[0,1,0,1,0,1,0,1,0,1,0,1], 
@@ -83,17 +84,19 @@ function createEmptyGrid(cols, rows) {
 function mousePressed() {
   let x = Math.floor(mouseX / cellWidth);
   let y = Math.floor(mouseY / cellHeight);
-  if (playerBoard[y][x] === 1) {
-    playerBoard[y][x] = 2;
-    oldPosition = ([y], [x]);
-    availableMoves();
-  }
-  else if (playerBoard[y][x] === 2) {
-    playerBoard[y][x] = 1;
-    grid[y-1][x+1] = 1;
-    grid[y-1][x-1] = 1;
+  if (turn === "player") {
+    if (playerBoard[y][x] === 1) {
+      playerBoard[y][x] = 2;
+      oldPosition = [y, x];
+      availableMoves();
+    }
+    else if (playerBoard[y][x] === 2) {
+      playerBoard[y][x] = 1;
+      grid[y-1][x+1] = 1;
+      grid[y-1][x-1] = 1;
     // grid[y+1][x+1] = 1;
     // grid[y+1][x-1] = 1;
+    }
   }
 }
 
@@ -106,12 +109,6 @@ function availableMoves() {
   if (playerBoard[y-1][x-1] === 0) {
     grid[y-1][x-1] = 2;
   }
-  // if (playerBoard[y+1][x+1] === 0) {
-  //   grid[y+1][x+1] = 2;
-  // }
-  // if (playerBoard[y+1][x-1] === 0) {
-  //   grid[y+1][x-1] = 2;
-  // }
 }
 
 function mouseClicked() {
@@ -120,10 +117,11 @@ function mouseClicked() {
   if (grid[y][x] === 2) {
     playerBoard[y][x] = 1;
     grid[oldPosition[0]-1][oldPosition[1]+1] = 1;
-    grid[y-1][x-1] = 1;
-    // grid[y+1][x+1] = 1;
-    // grid[y+1][x-1] = 1;
-  }
+    grid[oldPosition[0]-1][oldPosition[1]-1] = 1;
+    playerBoard[oldPosition[0]][oldPosition[1]] = 0;
+    turn = "ai";
+    aiMove();
+  }  
 }
 
 function displayPieces() {
@@ -135,9 +133,6 @@ function displayPieces() {
       }
       else if (aiBoard[y][x] === 0){
         noFill();
-      }
-      else {
-        fill("yellow");
       }
       ellipseMode(CORNER);
       ellipse(x*cellWidth,y*cellHeight,cellWidth-1,cellHeight-1);
@@ -175,6 +170,20 @@ function displayGrid() {
         fill("yellow");
       }
       rect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
+    }
+  }
+}
+
+function aiMove() {
+  for (let y=0; y<ROWS; y++) {
+    for (let x=0; x<COLS; x++) {
+      if (turn ===  "ai") {
+        if (aiBoard[y][x] === 1) {
+          turn = "player";
+          return aiBoard[y+1][x+1] = 1;
+
+        }
+      }
     }
   }
 }
