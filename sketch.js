@@ -10,21 +10,7 @@ const COLS = 12;
 let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition;
 let turn = "player";
 
-let aiBoard = 
-[[0,1,0,1,0,1,0,1,0,1,0,1], 
-  [1,0,1,0,1,0,1,0,1,0,1,0],
-  [0,1,0,1,0,1,0,1,0,1,0,1],
-  [1,0,1,0,1,0,1,0,1,0,1,0],
-  [0,1,0,1,0,1,0,1,0,1,0,1],
-  [0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0]
-];
-let playerBoard = 
+let board = 
 [[0,3,0,3,0,3,0,3,0,3,0,3], 
   [3,0,3,0,3,0,3,0,3,0,3,0],
   [0,3,0,3,0,3,0,3,0,3,0,3],
@@ -46,8 +32,8 @@ function setup() {
   cellWidth = width / COLS;
   cellHeight = height / ROWS;
 
-  boardRows = aiBoard.length;
-  boardCols = aiBoard[0].length;
+  boardRows = board.length;
+  boardCols = board[0].length;
 }
 
 function draw() {
@@ -85,17 +71,17 @@ function mousePressed() {
   let x = Math.floor(mouseX / cellWidth);
   let y = Math.floor(mouseY / cellHeight);
   if (turn === "player") {
-    if (playerBoard[y][x] === 1) {
-      playerBoard[y][x] = 2;
+    if (board[y][x] === 1) {
+      board[y][x] = 2;
       oldPosition = [y, x];
       availableMoves();
     }
-    else if (playerBoard[y][x] === 2) {
-      playerBoard[y][x] = 1;
+    else if (board[y][x] === 2) {
+      board[y][x] = 1;
       grid[y-1][x+1] = 1;
       grid[y-1][x-1] = 1;
-    // grid[y+1][x+1] = 1;
-    // grid[y+1][x-1] = 1;
+      grid[y-2][x+2] = 1;
+      grid[y-2][x-2] = 1;
     }
   }
 }
@@ -103,11 +89,17 @@ function mousePressed() {
 function availableMoves() {
   let x = Math.floor(mouseX / cellWidth);
   let y = Math.floor(mouseY / cellHeight);
-  if (playerBoard[y-1][x+1] === 0) {
+  if (board[y-1][x+1] === 0) {
     grid[y-1][x+1] = 2;
   }
-  if (playerBoard[y-1][x-1] === 0) {
+  if (board[y-1][x-1] === 0) {
     grid[y-1][x-1] = 2;
+  }
+  if (board[y-1][x-1] === 3 && board[y-2][x-2] === 0) {
+    grid[y-2][x-2] = 2;
+  }
+  if (board[y-1][x+1] === 3 && board[y-2][x+2] === 0) {
+    grid[y-2][x+2] = 2;
   }
 }
 
@@ -115,10 +107,13 @@ function mouseClicked() {
   let x = Math.floor(mouseX / cellWidth);
   let y = Math.floor(mouseY / cellHeight);
   if (grid[y][x] === 2) {
-    playerBoard[y][x] = 1;
+    board[y][x] = 1;
     grid[oldPosition[0]-1][oldPosition[1]+1] = 1;
     grid[oldPosition[0]-1][oldPosition[1]-1] = 1;
-    playerBoard[oldPosition[0]][oldPosition[1]] = 0;
+    grid[oldPosition[0]-2][oldPosition[1]+2] = 1;
+    grid[oldPosition[0]-2][oldPosition[1]-2] = 1;
+    board[oldPosition[0]][oldPosition[1]] = 0;
+    
     turn = "ai";
     aiMove();
   }  
@@ -128,27 +123,17 @@ function displayPieces() {
   for (let y=0; y<boardRows; y++) {
     for (let x=0; x<boardCols; x++) {
       noStroke();
-      if (aiBoard[y][x] === 1) {
-        fill("orange");
-      }
-      else if (aiBoard[y][x] === 0){
-        noFill();
-      }
-      ellipseMode(CORNER);
-      ellipse(x*cellWidth,y*cellHeight,cellWidth-1,cellHeight-1);
-    }
-  }
-  for (let y=0; y<boardRows; y++) {
-    for (let x=0; x<boardCols; x++) {
-      noStroke();
-      if (playerBoard[y][x] === 1) {
+      if (board[y][x] === 1) {
         fill("red");
       }
-      else if (playerBoard[y][x] === 0){
+      else if (board[y][x] === 0){
         noFill();
       }
-      else if (playerBoard[y][x] === 2) {
+      else if (board[y][x] === 2) {
         fill("yellow");
+      }
+      else if (board[y][x] === 3) {
+        fill("orange");
       }
       ellipseMode(CORNER);
       ellipse(x*cellWidth,y*cellHeight,cellWidth-1,cellHeight-1);
@@ -178,10 +163,25 @@ function aiMove() {
   for (let y=0; y<ROWS; y++) {
     for (let x=0; x<COLS; x++) {
       if (turn ===  "ai") {
-        if (aiBoard[y][x] === 1) {
+        if (board[y][x] === 3 && board[y+1][x+1] === 1 && board[y+2][x+2] === 0) {
           turn = "player";
-          return aiBoard[y+1][x+1] = 1;
-
+          board[y+2][x+2] = 3;
+          board[y+1][x+1] = 0;
+        }
+        else if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] === 0) {
+          turn = "player";
+          board[y][x] = 0;
+          board[y+1][x+1] = 3;
+        }
+        else if (board[y][x] === 3 && board[y+1][x+1] !== 0 && board[y+1][x-1] === 0) {
+          turn = "player";
+          board[y][x] = 0;
+          return board[y+1][x-1] = 3;
+        }
+        else if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] !== 0) {
+          turn = "player";
+          board[y][x] = 0;
+          board[y+1][x+1] = 3;
         }
       }
     }
