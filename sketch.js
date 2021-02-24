@@ -110,10 +110,13 @@ function mouseClicked() {
     board[y][x] = 1;
     grid[oldPosition[0]-1][oldPosition[1]+1] = 1;
     grid[oldPosition[0]-1][oldPosition[1]-1] = 1;
+    //  Jumping pieces
     grid[oldPosition[0]-2][oldPosition[1]+2] = 1;
     grid[oldPosition[0]-2][oldPosition[1]-2] = 1;
     board[oldPosition[0]][oldPosition[1]] = 0;
-    
+    if (board[y+2][x+2] === board[oldPosition[0]][oldPosition[1]]) {
+      board[oldPosition[0]-1][oldPosition[1]-1] = 0;
+    }
     turn = "ai";
     aiMove();
   }  
