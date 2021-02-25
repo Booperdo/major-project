@@ -7,7 +7,7 @@
 
 const ROWS = 12;
 const COLS = 12;
-let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition;
+let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition, moves;
 let turn = "player";
 
 let board = 
@@ -117,9 +117,13 @@ function mouseClicked() {
     if (board[y+2][x+2] === board[oldPosition[0]][oldPosition[1]]) {
       board[oldPosition[0]-1][oldPosition[1]-1] = 0;
     }
+    if (board[y+2][x-2] === board[oldPosition[0]][oldPosition[1]]) {
+      board[oldPosition[0]-1][oldPosition[1]+1] = 0;
+    }
+
     turn = "ai";
-    aiMove();
   }  
+  aiMove();
 }
 
 function displayPieces() {
@@ -129,7 +133,7 @@ function displayPieces() {
       if (board[y][x] === 1) {
         fill("red");
       }
-      else if (board[y][x] === 0){
+      else if (board[y][x] === 0) {
         noFill();
       }
       else if (board[y][x] === 2) {
@@ -138,6 +142,7 @@ function displayPieces() {
       else if (board[y][x] === 3) {
         fill("orange");
       }
+      
       ellipseMode(CORNER);
       ellipse(x*cellWidth,y*cellHeight,cellWidth-1,cellHeight-1);
     }
@@ -163,15 +168,20 @@ function displayGrid() {
 }
 
 function aiMove() {
+  moves = [];
   for (let y=0; y<ROWS; y++) {
     for (let x=0; x<COLS; x++) {
+      if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] === 0) {
+        moves.push(board[y][x]);
+      }
+      if (board[y][x] === 3 && board[y+1][x+1] !== 0 && board[y+1][x-1] === 0) {
+        moves.push(board[y][x]);
+      }
+      if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] !== 0) {
+        moves.push(board[y][x]);
+      }
       if (turn ===  "ai") {
-        if (board[y][x] === 3 && board[y+1][x+1] === 1 && board[y+2][x+2] === 0) {
-          turn = "player";
-          board[y+2][x+2] = 3;
-          board[y+1][x+1] = 0;
-        }
-        else if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] === 0) {
+        if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] === 0) {
           turn = "player";
           board[y][x] = 0;
           board[y+1][x+1] = 3;
