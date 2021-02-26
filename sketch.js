@@ -7,7 +7,7 @@
 
 const ROWS = 12;
 const COLS = 12;
-let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition, moves;
+let grid, cellWidth, cellHeight, boardRows, boardCols, oldPosition, moves, jump, playerPoints, aiPoints;
 let turn = "player";
 
 let board = 
@@ -40,6 +40,7 @@ function draw() {
   background(255);
   displayGrid();
   displayPieces();
+  aiMove();
 }
 
 
@@ -76,7 +77,7 @@ function mousePressed() {
       oldPosition = [y, x];
       availableMoves();
     }
-    else if (board[y][x] === 2) {
+    else if (board[y][x] === 2 && y-1 >= 0 ) {
       board[y][x] = 1;
       grid[y-1][x+1] = 1;
       grid[y-1][x-1] = 1;
@@ -111,24 +112,29 @@ function mouseClicked() {
     grid[oldPosition[0]-1][oldPosition[1]+1] = 1;
     grid[oldPosition[0]-1][oldPosition[1]-1] = 1;
     //  Jumping pieces
-    grid[oldPosition[0]-2][oldPosition[1]+2] = 1;
-    grid[oldPosition[0]-2][oldPosition[1]-2] = 1;
-    board[oldPosition[0]][oldPosition[1]] = 0;
-    if (board[y+2][x+2] === board[oldPosition[0]][oldPosition[1]]) {
-      board[oldPosition[0]-1][oldPosition[1]-1] = 0;
+    if (oldPosition[0]-2 < 0 || oldPosition[1] < 0) {
+      grid[oldPosition[0]-1][oldPosition[1]+1] = 1;
+      grid[oldPosition[0]-1][oldPosition[1]-1] = 1;
     }
-    if (board[y+2][x-2] === board[oldPosition[0]][oldPosition[1]]) {
-      board[oldPosition[0]-1][oldPosition[1]+1] = 0;
+    else {
+      grid[oldPosition[0]-2][oldPosition[1]+2] = 1;
+      grid[oldPosition[0]-2][oldPosition[1]-2] = 1;
+    }
+    board[oldPosition[0]][oldPosition[1]] = 0;
+    if (y+2 === oldPosition[0] && x+2 === oldPosition[1]) {
+      board[y+1][x+1] = 0;
+    }
+    else if (y+2 === oldPosition[0] && x-2 === oldPosition[1]) {
+      board[y+1][x-1] = 0;
     }
 
     turn = "ai";
-  }  
-  aiMove();
+  }
 }
 
 function displayPieces() {
-  for (let y=0; y<boardRows; y++) {
-    for (let x=0; x<boardCols; x++) {
+  for (let y=0; y<boardCols; y++) {
+    for (let x=0; x<boardRows; x++) {
       noStroke();
       if (board[y][x] === 1) {
         fill("red");
@@ -169,32 +175,79 @@ function displayGrid() {
 
 function aiMove() {
   moves = [];
+  jump = [];
   for (let y=0; y<ROWS; y++) {
     for (let x=0; x<COLS; x++) {
-      if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] === 0) {
-        moves.push(board[y][x]);
-      }
-      if (board[y][x] === 3 && board[y+1][x+1] !== 0 && board[y+1][x-1] === 0) {
-        moves.push(board[y][x]);
-      }
-      if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] !== 0) {
-        moves.push(board[y][x]);
-      }
-      if (turn ===  "ai") {
+      if (y+1 < 12) {
         if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] === 0) {
-          turn = "player";
-          board[y][x] = 0;
-          board[y+1][x+1] = 3;
+          moves.push([y, x]);
         }
-        else if (board[y][x] === 3 && board[y+1][x+1] !== 0 && board[y+1][x-1] === 0) {
-          turn = "player";
-          board[y][x] = 0;
-          return board[y+1][x-1] = 3;
+        if (board[y][x] === 3 && board[y+1][x+1] !== 0 && board[y+1][x-1] === 0) {
+          moves.push([y, x]);
         }
-        else if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] !== 0) {
-          turn = "player";
-          board[y][x] = 0;
-          board[y+1][x+1] = 3;
+        if (board[y][x] === 3 && board[y+1][x+1] === 0 && board[y+1][x-1] !== 0) {
+          moves.push([y, x]);
+        }
+      }
+      // jumping
+      if (y+2 < 12) {
+        if (board[y][x] === 3 && board[y+1][x+1] === 1 && board[y+2][x+2] === 0 && y+2<12) {
+          jump.push([y, x]);
+        }
+        if (board[y][x] === 3 && board[y+1][x-1] === 1 && board[y+2][x-2] === 0 && y+2<12) {
+          jump.push([y, x]);
+        }
+      }
+    }
+  }
+  if (turn ===  "ai") {
+    if (jump.length > 0) {
+      let choice = random(jump);
+      if (board[choice[0]][choice[1]] === 3 && board[choice[0]+1][choice[1]+1] === 1 && board[choice[0]+2][choice[1]+2] === 0) {
+        turn = "player";
+        board[choice[0]][choice[1]] = 0;
+        board[choice[0]+1][choice[1]+1] = 0;
+        board[choice[0]+2][choice[1]+2] = 3;
+        jump = [];
+      }
+      else if (board[choice[0]][choice[1]] === 3 && board[choice[0]+1][choice[1]-1] === 1 && board[choice[0]+2][choice[1]-2] === 0) {
+        turn = "player";
+        board[choice[0]][choice[1]] = 0;
+        board[choice[0]+1][choice[1]-1] = 0;
+        board[choice[0]+2][choice[1]-2] = 3;
+        jump = [];
+      }
+    }
+    else {
+      let choice = random(moves);
+      if (board[choice[0]][choice[1]] === 3 && board[choice[0]+1][choice[1]+1] === 0 && board[choice[0]+1][choice[1]-1] === 0) {
+        turn = "player";
+        board[choice[0]][choice[1]] = 0;
+        board[choice[0]+1][choice[1]+1] = 3;
+        moves = [];
+      }
+      else if (board[choice[0]][choice[1]] === 3 && board[choice[0]+1][choice[1]+1] !== 0 && board[choice[0]+1][choice[1]-1] === 0) {
+        turn = "player";
+        board[choice[0]][choice[1]] = 0;
+        board[choice[0]+1][choice[1]-1] = 3;
+        moves = [];
+      }
+      else if (board[choice[0]][choice[1]] && board[choice[0]+1][choice[1]+1] === 0 && board[choice[0]+1][choice[1]-1] !== 0) {
+        turn = "player";
+        board[choice[0]][choice[1]] = 0;
+        board[choice[0]+1][choice[1]+1] = 3;
+        moves = [];
+      }
+    }
+  }
+}
+
+function numberOfPoints() {
+  for (let y=0; y<boardCols; y++) {
+    for (let x=0; x<boardRows; x++) {
+      if (board[y] === 1) {
+        if (board[y][x] === 1) {
+          playerPoints++;
         }
       }
     }
